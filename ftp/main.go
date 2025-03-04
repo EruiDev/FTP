@@ -5,6 +5,7 @@ import (
 	"myftp/core"
 	"net"
 	"os"
+	"path/filepath"
 )
 
 func main() {
@@ -13,9 +14,8 @@ func main() {
 		return
 	}
 	port := os.Args[1]
-	path := os.Args[2]
-
-	if _, err := os.Stat(path); os.IsNotExist(err) {
+	path, err := filepath.Abs(os.Args[2])
+	if err != nil {
 		fmt.Println("Path does not exist")
 		return
 	}
@@ -25,6 +25,7 @@ func main() {
 		fmt.Println("Error on listening:", err)
 		return
 	}
+	fmt.Println("Server started on path: ", path)
 
 	defer listener.Close()
 
