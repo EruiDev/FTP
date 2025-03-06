@@ -4,22 +4,26 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"myftp/commands"
 	"myftp/commons"
 	"net"
+	"path/filepath"
 	"strings"
 )
 
 func Protocol(conn net.Conn, path string) {
 	defer conn.Close()
-	defer fmt.Println("Client disconnected: ", conn.RemoteAddr())
+	defer fmt.Println("Client disconnected:", conn.RemoteAddr())
+	cleanPath := filepath.Clean(path)
 	user := commons.Info{
-		CurrentDir:     path,
+		OriginalDir:    cleanPath,
+		CurrentDir:     cleanPath,
 		Username:       "",
 		IsLogged:       false,
 		Conn:           conn,
 		DataConnection: nil,
 	}
-	fmt.Println("New client connected: ", conn.RemoteAddr())
+	fmt.Println("New client connected:", conn.RemoteAddr())
 	conn.Write([]byte("220 Welcome to MyFTP\r\n"))
 	protocol_loop(conn, &user)
 }
@@ -27,7 +31,7 @@ func Protocol(conn net.Conn, path string) {
 func protocol_loop(conn net.Conn, user *commons.Info) {
 	for {
 		split, err := getParsedCommand(conn)
-		fmt.Println("Command received: ", split)
+		fmt.Println("Command received:", split)
 		if err != nil {
 			return
 		}
@@ -44,10 +48,20 @@ func protocol_loop(conn net.Conn, user *commons.Info) {
 			conn.Write([]byte(commons.InvalidCommand))
 			continue
 		}
-		if !user.IsLogged && (split[0] != "USER" && split[0] != "PASS") {
+		if !user.IsLogged && (split[0] != "USER" && split[0] != "PASS" && split[0] != "HELP") {
 			conn.Write([]byte(commons.LoginFirst))
 			continue
 		}
+
+		if split[0] == "HELP" {
+			if err := commands.HandleHelp(split, user, commandList); err != nil {
+				conn.Write([]byte(commons.InternalError))
+				fmt.Println("Internal error: ", err)
+				return
+			}
+			continue
+		}
+
 		if err := command.Handler(split, user); err != nil {
 			conn.Write([]byte(commons.InternalError))
 			fmt.Println("Internal error: ", err)
