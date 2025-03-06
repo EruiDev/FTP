@@ -2,12 +2,15 @@ package commons
 
 const (
 	DirectoryListing    = "150 Here comes the directory listing.\r\n"
+	FileTransferStarting = "150 Opening BINARY mode data connection for file transfer.\r\n"
 	LinuxSystem         = "215 UNIX Type: L8\r\n"
 	Goodbye             = "221 Goodbye.\r\n"
 	DirectoryOK         = "226 Directory send OK.\r\n"
+	FileTransferComplete = "226 Transfer complete.\r\n"
 	AlreadyLogged       = "230 Already logged in.\r\n"
 	UserLoginSuccess    = "230 User logged in, proceed.\r\n"
 	DirectoryChanged    = "250 Directory successfully changed.\r\n"
+	FileDeleted         = "250 File deleted successfully.\r\n"
 	DirectoryCreated    = "257 Directory created.\r\n"
 	UsernameOK          = "331 User name okay, password needed.\r\n"
 	NoDataConnection    = "425 Use PORT or PASV first.\r\n"
@@ -20,4 +23,8 @@ const (
 	NoDirectory         = "550 No directory selected\r\n"
 	DirectoryNotFound   = "550 Directory not found.\r\n"
 	NoDirectorySelected = "550 No directory selected\r\n"
+	FileNotFound        = "550 File not found.\r\n"
+	FileDeleteError     = "550 Cannot delete file.\r\n"
+	FileOpenError       = "550 Cannot open file.\r\n"
+	FileTransferError   = "550 File transfer failed.\r\n"
 )

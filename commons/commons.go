@@ -3,6 +3,7 @@ package commons
 import "net"
 
 type Info struct {
+	OriginalDir    string
 	CurrentDir     string
 	Username       string
 	IsLogged       bool
