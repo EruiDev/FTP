@@ -15,3 +15,15 @@ func HandleFeat(args []string, info *commons.Info) error {
 	}
 	return utils.WriteMessage(info.Conn, "211 End\n")
 }
+
+func HandleType(args []string, info *commons.Info) error {
+	if len(args) != 2 {
+		return utils.WriteMessage(info.Conn, "500 Invalid command.\r\n")
+	}
+
+	if args[1] == "A" || args[1] == "I" {
+		return utils.WriteMessage(info.Conn, "200 Type set to "+args[1]+".\r\n")
+	} else {
+		return utils.WriteMessage(info.Conn, "504 Type not supported.\r\n")
+	}
+}
