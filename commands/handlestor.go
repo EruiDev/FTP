@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func HandleRetr(args []string, info *commons.Info) error {
+func HandleStor(args []string, info *commons.Info) error {
 	if !info.IsLogged {
 		return utils.WriteMessage(info.Conn, commons.LoginFirst)
 	}
@@ -38,15 +38,7 @@ func HandleRetr(args []string, info *commons.Info) error {
 		return utils.WriteMessage(info.Conn, commons.FileNotFound)
 	}
 
-	fileInfo, err := os.Stat(targetPath)
-	if os.IsNotExist(err) || err != nil {
-		return utils.WriteMessage(info.Conn, commons.FileNotFound)
-	}
-	if fileInfo.IsDir() {
-		return utils.WriteMessage(info.Conn, commons.FileNotFound)
-	}
-
-	file, err := os.Open(targetPath)
+	file, err := os.Create(targetPath)
 	if err != nil {
 		return utils.WriteMessage(info.Conn, commons.FileOpenError)
 	}
@@ -57,7 +49,7 @@ func HandleRetr(args []string, info *commons.Info) error {
 		return err
 	}
 
-	_, err = io.Copy(info.DataConnection, file)
+	_, err = io.Copy(file, info.DataConnection)
 
 	if err != nil {
 		return utils.WriteMessage(info.Conn, commons.FileTransferError)
