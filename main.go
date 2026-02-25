@@ -13,7 +13,7 @@ func main() {
 		fmt.Println("Usage: ./myftp (port) (path)")
 		return
 	}
-	port := os.Args[1]
+	port := os.Args[1] // TODO: If path is empty take the current directory as the default
 	path, err := filepath.Abs(os.Args[2])
 	if err != nil {
 		fmt.Println("Path does not exist")
