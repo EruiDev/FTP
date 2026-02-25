@@ -10,7 +10,7 @@ import (
 
 func main() {
 	if len(os.Args) != 3 {
-		fmt.Println("Usage: go run . (port) (path)")
+		fmt.Println("Usage: ./myftp (port) (path)")
 		return
 	}
 	port := os.Args[1]
