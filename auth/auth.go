@@ -4,6 +4,7 @@ import (
 	"myftp/commons"
 	"myftp/utils"
 	sys_usr "os/user"
+	"time"
 )
 
 func HandleUser(args []string, info *commons.Info) error {
@@ -32,6 +33,8 @@ func HandlePass(args []string, info *commons.Info) error {
 	if info.Username == "" {
 		return utils.WriteMessage(info.Conn, commons.UserFirst)
 	}
+	
+	time.Sleep(time.Second)
 
 	user, err := sys_usr.Lookup(info.Username)
 	if err != nil {

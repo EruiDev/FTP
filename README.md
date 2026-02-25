@@ -49,15 +49,15 @@ go build -o myftp
 
 ```bash
 # Run the server
-go run . <port> <path>
+./myftp <port> <path>
 
 # Example
-go run . 2121 /home/user/ftp-files
+./myftp 2121 /home/user/ftp-files
 ```
 
 **Parameters:**
 - `port` - Port number for the FTP server to listen on
-- `path` - Root directory for FTP file access (users are sandboxed to this directory)
+- `path` - Root directory for FTP file access (anonymous are sandboxed to this directory)
 
 ## Connecting to the Server
 
