@@ -46,10 +46,9 @@ func HandlePass(args []string, info *commons.Info) error {
 	if !ok {
 		return utils.WriteMessage(info.Conn, commons.IncorrectLogin)
 	}
-	if info.OriginalDir == "" {
-		info.OriginalDir = user.HomeDir
-		info.CurrentDir = user.HomeDir
-	}
+	info.OriginalDir = user.HomeDir
+	info.CurrentDir = user.HomeDir
+	info.IsLogged = true
 
 	return utils.WriteMessage(info.Conn, commons.UserLoginSuccess)
 }
