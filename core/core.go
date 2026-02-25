@@ -59,6 +59,16 @@ var commandList = map[string]commons.Command{
 		Description: "Retrieve (download) a file",
 		Handler:     commands.HandleRetr,
 	},
+	"STOR": {
+		Description: "Store (upload) a file",
+		Handler:     commands.HandleStor,
+	},
+	"NOOP": {
+		Description: "No operation (do nothing)",
+		Handler:     commands.HandleNoop,
+	},
+	"TYPE": {
+		Description: "Provide the file type to the client",
+		Handler:     auth.HandleType,
+	},
 }
-
-
