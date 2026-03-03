@@ -21,7 +21,6 @@ const (
 	IncorrectLogin       = "530 Incorrect Login.\r\n"
 	AuthenticationError  = "530 Authentication error.\r\n"
 	KOChangeUser         = "530 Can't change to another user\r\n"
-	NoDirectory          = "550 No directory selected\r\n"
 	DirectoryNotFound    = "550 Directory not found.\r\n"
 	NoDirectorySelected  = "550 No directory selected\r\n"
 	FileNotFound         = "550 File not found.\r\n"

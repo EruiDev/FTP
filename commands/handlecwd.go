@@ -48,5 +48,5 @@ func HandleCdup(args []string, info *commons.Info) error {
 	}
 
 	info.CurrentDir = parentDir
-	return utils.WriteMessage(info.Conn, "200 Directory successfully changed.\r\n")
+	return utils.WriteMessage(info.Conn, commons.DirectoryChanged)
 }

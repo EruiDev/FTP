@@ -10,10 +10,10 @@ func HandleSyst(args []string, user *commons.Info) error {
 }
 
 func HandleFeat(args []string, info *commons.Info) error {
-	if err := utils.WriteMessage(info.Conn, "211-Features:\n"); err != nil {
+	if err := utils.WriteMessage(info.Conn, "211-Features:\r\n"); err != nil {
 		return err
 	}
-	return utils.WriteMessage(info.Conn, "211 End\n")
+	return utils.WriteMessage(info.Conn, "211 End\r\n")
 }
 
 func HandleType(args []string, info *commons.Info) error {

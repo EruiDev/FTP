@@ -33,6 +33,7 @@ A lightweight, secure FTP server implementation written in Go that supports stan
 ## Requirements
 
 - Go 1.22.2 or higher
+- libpam0g-dev on Linux systems
 
 ## Installation
 
