@@ -20,19 +20,20 @@ func HandlePassive(args []string, info *commons.Info) error {
 		info.DataConnection = nil
 	}
 
-	listener, err := net.Listen("tcp", ":0")
-	if err != nil {
-		return utils.WriteMessage(info.Conn, commons.CantOpenDataConn)
-	}
-	port := listener.Addr().(*net.TCPAddr).Port
-	defer func() { _ = listener.Close() }()
-
 	localAddr := info.Conn.LocalAddr().String()
 	host, _, _ := net.SplitHostPort(localAddr)
 	ipParts := strings.Split(host, ".")
 	if len(ipParts) != 4 {
 		ipParts = []string{"127", "0", "0", "1"}
+		host = "127.0.0.1"
 	}
+
+	listener, err := net.Listen("tcp", host+":0")
+	if err != nil {
+		return utils.WriteMessage(info.Conn, commons.CantOpenDataConn)
+	}
+	port := listener.Addr().(*net.TCPAddr).Port
+	defer func() { _ = listener.Close() }()
 
 	pasvAddr := strings.Join(ipParts, ",") + "," + strconv.Itoa(port>>8) + "," + strconv.Itoa(port&0xff)
 	if err := utils.WriteMessage(info.Conn, fmt.Sprintf(commons.EnteringPassiveMode, pasvAddr)); err != nil {
