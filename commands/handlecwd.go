@@ -23,16 +23,24 @@ func HandleCwd(args []string, info *commons.Info) error {
 		newDir = filepath.Clean(filepath.Join(info.CurrentDir, args[1]))
 	}
 
-	fileInfo, err := os.Stat(newDir)
-	if os.IsNotExist(err) || err != nil || !fileInfo.IsDir() {
-		return utils.WriteMessage(info.Conn, commons.DirectoryNotFound)
-	}
-
 	if !strings.HasPrefix(newDir, info.OriginalDir+string(filepath.Separator)) && newDir != info.OriginalDir {
 		return utils.WriteMessage(info.Conn, commons.DirectoryNotFound)
 	}
 
-	info.CurrentDir = newDir
+	realDir, err := filepath.EvalSymlinks(newDir)
+	if err != nil {
+		return utils.WriteMessage(info.Conn, commons.DirectoryNotFound)
+	}
+	if !strings.HasPrefix(realDir, info.OriginalDir+string(filepath.Separator)) && realDir != info.OriginalDir {
+		return utils.WriteMessage(info.Conn, commons.DirectoryNotFound)
+	}
+
+	fileInfo, err := os.Stat(realDir)
+	if os.IsNotExist(err) || err != nil || !fileInfo.IsDir() {
+		return utils.WriteMessage(info.Conn, commons.DirectoryNotFound)
+	}
+
+	info.CurrentDir = realDir
 	return utils.WriteMessage(info.Conn, commons.DirectoryChanged)
 }
 

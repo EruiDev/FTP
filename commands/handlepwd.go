@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"myftp/commons"
 	"myftp/utils"
 )
@@ -12,5 +13,5 @@ func HandlePwd(args []string, info *commons.Info) error {
 	if info.CurrentDir == "" {
 		return utils.WriteMessage(info.Conn, commons.NoDirectorySelected)
 	}
-	return utils.WriteMessage(info.Conn, "257 \""+info.CurrentDir+"\" is the current directory \r\n")
+	return utils.WriteMessage(info.Conn, fmt.Sprintf(commons.CurrentDirectory, info.CurrentDir))
 }

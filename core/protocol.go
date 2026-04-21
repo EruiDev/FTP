@@ -9,6 +9,7 @@ import (
 	"net"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 func Protocol(conn net.Conn, path string) {
@@ -23,15 +24,21 @@ func Protocol(conn net.Conn, path string) {
 		Conn:           conn,
 		DataConnection: nil,
 	}
+	defer func() {
+		if user.DataConnection != nil {
+			user.DataConnection.Close()
+		}
+	}()
 	fmt.Println("New client connected:", conn.RemoteAddr())
-	conn.Write([]byte("220 Welcome to MyFTP\r\n"))
-	protocol_loop(conn, &user)
+	conn.Write([]byte(commons.Welcome))
+	reader := bufio.NewReader(conn)
+	protocolLoop(conn, &user, reader)
 }
 
-func protocol_loop(conn net.Conn, user *commons.Info) {
+func protocolLoop(conn net.Conn, user *commons.Info, reader *bufio.Reader) {
 	for {
-		split, err := getParsedCommand(conn)
-		fmt.Println("Command received:", split)
+		conn.SetReadDeadline(time.Now().Add(5 * time.Minute))
+		split, err := getParsedCommand(reader)
 		if err != nil {
 			return
 		}
@@ -39,8 +46,19 @@ func protocol_loop(conn net.Conn, user *commons.Info) {
 			continue
 		}
 		split[0] = strings.ToUpper(split[0])
+
+		if split[0] == "PASS" {
+			fmt.Println("Command received: [PASS ****]")
+		} else {
+			fmt.Println("Command received:", split)
+		}
+
 		if split[0] == "QUIT" {
 			conn.Write([]byte(commons.Goodbye))
+			if user.DataConnection != nil {
+				user.DataConnection.Close()
+				user.DataConnection = nil
+			}
 			break
 		}
 		command, ok := commandList[split[0]]
@@ -48,7 +66,7 @@ func protocol_loop(conn net.Conn, user *commons.Info) {
 			conn.Write([]byte(commons.InvalidCommand))
 			continue
 		}
-		if !user.IsLogged && (split[0] != "USER" && split[0] != "PASS" && split[0] != "HELP") {
+		if !user.IsLogged && (split[0] != "USER" && split[0] != "PASS" && split[0] != "HELP" && split[0] != "SYST" && split[0] != "FEAT") {
 			conn.Write([]byte(commons.LoginFirst))
 			continue
 		}
@@ -57,7 +75,6 @@ func protocol_loop(conn net.Conn, user *commons.Info) {
 			if err := commands.HandleHelp(split, user, commandList); err != nil {
 				conn.Write([]byte(commons.InternalError))
 				fmt.Println("Internal error: ", err)
-				return
 			}
 			continue
 		}
@@ -65,13 +82,12 @@ func protocol_loop(conn net.Conn, user *commons.Info) {
 		if err := command.Handler(split, user); err != nil {
 			conn.Write([]byte(commons.InternalError))
 			fmt.Println("Internal error: ", err)
-			return
+			continue
 		}
 	}
 }
 
-func getParsedCommand(conn net.Conn) ([]string, error) {
-	reader := bufio.NewReader(conn)
+func getParsedCommand(reader *bufio.Reader) ([]string, error) {
 	line, err := reader.ReadString('\n')
 	if err != nil {
 		if err == io.EOF {
@@ -85,6 +101,9 @@ func getParsedCommand(conn net.Conn) ([]string, error) {
 		return nil, nil
 	}
 
-	split := strings.Split(line, " ")
-	return split, nil
+	idx := strings.IndexByte(line, ' ')
+	if idx == -1 {
+		return []string{line}, nil
+	}
+	return []string{line[:idx], line[idx+1:]}, nil
 }

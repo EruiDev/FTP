@@ -1,17 +1,32 @@
 package commands
 
 import (
+	"fmt"
 	"myftp/commons"
 	"myftp/utils"
 	"net"
 	"os"
 	"path/filepath"
+	"strings"
 )
+
+func formatDirEntry(entry os.DirEntry) (string, error) {
+	info, err := entry.Info()
+	if err != nil {
+		return "", err
+	}
+	modTime := info.ModTime().Format("Jan 02 15:04")
+	return fmt.Sprintf("%s 1 ftp ftp %12d %s %s\r\n",
+		info.Mode().String(), info.Size(), modTime, entry.Name()), nil
+}
 
 func displayFiles(files []os.DirEntry, conn net.Conn) error {
 	for _, file := range files {
-		err := utils.WriteMessage(conn, file.Name()+"\r\n")
+		line, err := formatDirEntry(file)
 		if err != nil {
+			line = file.Name() + "\r\n"
+		}
+		if err := utils.WriteMessage(conn, line); err != nil {
 			return err
 		}
 	}
@@ -29,6 +44,13 @@ func HandleList(args []string, info *commons.Info) error {
 		return utils.WriteMessage(info.Conn, commons.NoDataConnection)
 	}
 
+	defer func() {
+		if info.DataConnection != nil {
+			info.DataConnection.Close()
+			info.DataConnection = nil
+		}
+	}()
+
 	path := "."
 	if len(args) == 2 {
 		path = args[1]
@@ -36,7 +58,11 @@ func HandleList(args []string, info *commons.Info) error {
 
 	absPath, err := filepath.Abs(filepath.Join(info.CurrentDir, path))
 	if err != nil {
-		return utils.WriteMessage(info.Conn, "550 Invalid path\r\n")
+		return utils.WriteMessage(info.Conn, commons.InvalidPath)
+	}
+
+	if !strings.HasPrefix(absPath, info.OriginalDir+string(filepath.Separator)) && absPath != info.OriginalDir {
+		return utils.WriteMessage(info.Conn, commons.DirectoryNotFound)
 	}
 
 	files, err := os.ReadDir(absPath)
@@ -44,20 +70,13 @@ func HandleList(args []string, info *commons.Info) error {
 		return utils.WriteMessage(info.Conn, commons.DirectoryNotFound)
 	}
 
-	err = utils.WriteMessage(info.Conn, "150 Here comes the directory listing.\r\n")
-	if err != nil {
-		return utils.WriteMessage(info.Conn, "550 Failed to list directory\r\n")
-	}
-
-	err = displayFiles(files, info.DataConnection)
-	info.DataConnection.Close()
-	info.DataConnection = nil
-	if err != nil {
-		return utils.WriteMessage(info.Conn, "550 Failed to list all directory")
-	}
-	err = utils.WriteMessage(info.Conn, "226 Directory send OK.\r\n")
-	if err != nil {
+	if err := utils.WriteMessage(info.Conn, commons.DirectoryListing); err != nil {
 		return err
 	}
-	return nil
+
+	if err := displayFiles(files, info.DataConnection); err != nil {
+		return utils.WriteMessage(info.Conn, commons.ListFailed)
+	}
+
+	return utils.WriteMessage(info.Conn, commons.DirectoryOK)
 }

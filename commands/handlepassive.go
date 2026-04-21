@@ -1,16 +1,24 @@
 package commands
 
 import (
+	"fmt"
 	"math/rand/v2"
 	"myftp/commons"
 	"myftp/utils"
 	"net"
 	"strconv"
+	"strings"
+	"time"
 )
 
 func HandlePassive(args []string, info *commons.Info) error {
 	if !info.IsLogged {
 		return utils.WriteMessage(info.Conn, commons.LoginFirst)
+	}
+
+	if info.DataConnection != nil {
+		info.DataConnection.Close()
+		info.DataConnection = nil
 	}
 
 	var listener net.Listener
@@ -20,21 +28,31 @@ func HandlePassive(args []string, info *commons.Info) error {
 
 	for i := 0; i < maxRetries; i++ {
 		port = rand.IntN(65535-1024) + 1024
-		listener, err = net.Listen("tcp", "127.0.0.1:"+strconv.Itoa(port))
+		listener, err = net.Listen("tcp", ":"+strconv.Itoa(port))
 		if err == nil {
 			break
 		}
 	}
 
 	if err != nil {
-		return utils.WriteMessage(info.Conn, "425 Can't open data connection.\r\n")
+		return utils.WriteMessage(info.Conn, commons.CantOpenDataConn)
 	}
 	defer listener.Close()
 
-	utils.WriteMessage(info.Conn, "227 Entering Passive Mode (127,0,0,1,"+strconv.Itoa(port>>8)+","+strconv.Itoa(port&0xff)+")\r\n")
+	localAddr := info.Conn.LocalAddr().String()
+	host, _, _ := net.SplitHostPort(localAddr)
+	ipParts := strings.Split(host, ".")
+	if len(ipParts) != 4 {
+		ipParts = []string{"127", "0", "0", "1"}
+	}
+
+	pasvAddr := strings.Join(ipParts, ",") + "," + strconv.Itoa(port>>8) + "," + strconv.Itoa(port&0xff)
+	utils.WriteMessage(info.Conn, fmt.Sprintf(commons.EnteringPassiveMode, pasvAddr))
+
+	listener.(*net.TCPListener).SetDeadline(time.Now().Add(30 * time.Second))
 	conn, err := listener.Accept()
 	if err != nil {
-		return utils.WriteMessage(info.Conn, "425 Can't open data connection.\r\n")
+		return utils.WriteMessage(info.Conn, commons.CantOpenDataConn)
 	}
 
 	info.DataConnection = conn

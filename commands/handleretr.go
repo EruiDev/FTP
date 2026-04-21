@@ -38,7 +38,15 @@ func HandleRetr(args []string, info *commons.Info) error {
 		return utils.WriteMessage(info.Conn, commons.FileNotFound)
 	}
 
-	fileInfo, err := os.Stat(targetPath)
+	realPath, err := filepath.EvalSymlinks(targetPath)
+	if err != nil {
+		return utils.WriteMessage(info.Conn, commons.FileNotFound)
+	}
+	if !strings.HasPrefix(realPath, info.OriginalDir+string(filepath.Separator)) && realPath != info.OriginalDir {
+		return utils.WriteMessage(info.Conn, commons.FileNotFound)
+	}
+
+	fileInfo, err := os.Stat(realPath)
 	if os.IsNotExist(err) || err != nil {
 		return utils.WriteMessage(info.Conn, commons.FileNotFound)
 	}
@@ -46,7 +54,7 @@ func HandleRetr(args []string, info *commons.Info) error {
 		return utils.WriteMessage(info.Conn, commons.FileNotFound)
 	}
 
-	file, err := os.Open(targetPath)
+	file, err := os.Open(realPath)
 	if err != nil {
 		return utils.WriteMessage(info.Conn, commons.FileOpenError)
 	}

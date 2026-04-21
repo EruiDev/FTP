@@ -38,6 +38,15 @@ func HandleStor(args []string, info *commons.Info) error {
 		return utils.WriteMessage(info.Conn, commons.FileNotFound)
 	}
 
+	realDir, err := filepath.EvalSymlinks(filepath.Dir(targetPath))
+	if err != nil {
+		return utils.WriteMessage(info.Conn, commons.FileNotFound)
+	}
+	targetPath = filepath.Join(realDir, filepath.Base(targetPath))
+	if !strings.HasPrefix(targetPath, info.OriginalDir+string(filepath.Separator)) && targetPath != info.OriginalDir {
+		return utils.WriteMessage(info.Conn, commons.FileNotFound)
+	}
+
 	file, err := os.Create(targetPath)
 	if err != nil {
 		return utils.WriteMessage(info.Conn, commons.FileOpenError)

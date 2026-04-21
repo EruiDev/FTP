@@ -6,5 +6,5 @@ import (
 )
 
 func HandleNoop(args []string, info *commons.Info) error {
-	return utils.WriteMessage(info.Conn, "200 OK.\r\n")
+	return utils.WriteMessage(info.Conn, commons.CommandOK)
 }

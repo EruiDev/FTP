@@ -27,7 +27,15 @@ func HandleDele(args []string, info *commons.Info) error {
 		return utils.WriteMessage(info.Conn, commons.FileNotFound)
 	}
 
-	fileInfo, err := os.Stat(targetPath)
+	realPath, err := filepath.EvalSymlinks(targetPath)
+	if err != nil {
+		return utils.WriteMessage(info.Conn, commons.FileNotFound)
+	}
+	if !strings.HasPrefix(realPath, info.OriginalDir+string(filepath.Separator)) && realPath != info.OriginalDir {
+		return utils.WriteMessage(info.Conn, commons.FileNotFound)
+	}
+
+	fileInfo, err := os.Stat(realPath)
 	if os.IsNotExist(err) {
 		return utils.WriteMessage(info.Conn, commons.FileNotFound)
 	}
@@ -39,7 +47,7 @@ func HandleDele(args []string, info *commons.Info) error {
 		return utils.WriteMessage(info.Conn, commons.FileNotFound)
 	}
 
-	if err := os.Remove(targetPath); err != nil {
+	if err := os.Remove(realPath); err != nil {
 		return utils.WriteMessage(info.Conn, commons.FileDeleteError)
 	}
 
