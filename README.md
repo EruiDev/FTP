@@ -9,7 +9,7 @@ A lightweight, secure FTP server implementation written in Go that supports stan
 - **User Authentication** - Secure login system with username and password verification
 - **Directory Isolation** - Sandboxed file access prevents directory traversal attacks
 - **Concurrent Connections** - Multi-client support with goroutine-based connection handling
-- **Standards Compliant** - RFC 959 compatible responses and behavior
+- **Standards Compliant** - RFC 959 compatible responses and behavior; RFC 2389 compliant feature negotiation via the `FEAT` command
 
 ## Supported Commands
 
