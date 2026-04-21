@@ -33,18 +33,17 @@ func HandlePass(args []string, info *commons.Info) error {
 	if info.Username == "" {
 		return utils.WriteMessage(info.Conn, commons.UserFirst)
 	}
-	
+
 	time.Sleep(time.Second)
 
 	user, err := sys_usr.Lookup(info.Username)
 	if err != nil {
-		utils.WriteMessage(info.Conn, commons.AuthenticationError)
+		return utils.WriteMessage(info.Conn, commons.AuthenticationError)
 	}
 
 	ok, err := Authenticate(info.Username, args[1])
-
 	if err != nil {
-		utils.WriteMessage(info.Conn, commons.AuthenticationError)
+		return utils.WriteMessage(info.Conn, commons.AuthenticationError)
 	}
 	if !ok {
 		return utils.WriteMessage(info.Conn, commons.IncorrectLogin)

@@ -30,7 +30,7 @@ func main() {
 	}
 	fmt.Println("Server started on path: ", path)
 
-	defer listener.Close()
+	defer func() { _ = listener.Close() }()
 
 	fmt.Println("Server listening on port: ", port)
 

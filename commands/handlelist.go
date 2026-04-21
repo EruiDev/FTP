@@ -46,7 +46,7 @@ func HandleList(args []string, info *commons.Info) error {
 
 	defer func() {
 		if info.DataConnection != nil {
-			info.DataConnection.Close()
+			_ = info.DataConnection.Close()
 			info.DataConnection = nil
 		}
 	}()

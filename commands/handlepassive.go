@@ -17,7 +17,7 @@ func HandlePassive(args []string, info *commons.Info) error {
 	}
 
 	if info.DataConnection != nil {
-		info.DataConnection.Close()
+		_ = info.DataConnection.Close()
 		info.DataConnection = nil
 	}
 
@@ -37,7 +37,7 @@ func HandlePassive(args []string, info *commons.Info) error {
 	if err != nil {
 		return utils.WriteMessage(info.Conn, commons.CantOpenDataConn)
 	}
-	defer listener.Close()
+	defer func() { _ = listener.Close() }()
 
 	localAddr := info.Conn.LocalAddr().String()
 	host, _, _ := net.SplitHostPort(localAddr)
@@ -47,9 +47,11 @@ func HandlePassive(args []string, info *commons.Info) error {
 	}
 
 	pasvAddr := strings.Join(ipParts, ",") + "," + strconv.Itoa(port>>8) + "," + strconv.Itoa(port&0xff)
-	utils.WriteMessage(info.Conn, fmt.Sprintf(commons.EnteringPassiveMode, pasvAddr))
+	if err := utils.WriteMessage(info.Conn, fmt.Sprintf(commons.EnteringPassiveMode, pasvAddr)); err != nil {
+		return err
+	}
 
-	listener.(*net.TCPListener).SetDeadline(time.Now().Add(30 * time.Second))
+	_ = listener.(*net.TCPListener).SetDeadline(time.Now().Add(30 * time.Second))
 	conn, err := listener.Accept()
 	if err != nil {
 		return utils.WriteMessage(info.Conn, commons.CantOpenDataConn)

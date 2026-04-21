@@ -22,7 +22,7 @@ func HandleStor(args []string, info *commons.Info) error {
 
 	defer func() {
 		if info.DataConnection != nil {
-			info.DataConnection.Close()
+			_ = info.DataConnection.Close()
 			info.DataConnection = nil
 		}
 	}()
@@ -51,7 +51,7 @@ func HandleStor(args []string, info *commons.Info) error {
 	if err != nil {
 		return utils.WriteMessage(info.Conn, commons.FileOpenError)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	err = utils.WriteMessage(info.Conn, commons.FileTransferStarting)
 	if err != nil {
