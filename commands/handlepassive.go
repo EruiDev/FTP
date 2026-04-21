@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"math/rand/v2"
 	"myftp/commons"
 	"myftp/utils"
 	"net"
@@ -21,22 +20,11 @@ func HandlePassive(args []string, info *commons.Info) error {
 		info.DataConnection = nil
 	}
 
-	var listener net.Listener
-	var err error
-	var port int
-	maxRetries := 10
-
-	for i := 0; i < maxRetries; i++ {
-		port = rand.IntN(65535-1024) + 1024
-		listener, err = net.Listen("tcp", ":"+strconv.Itoa(port))
-		if err == nil {
-			break
-		}
-	}
-
+	listener, err := net.Listen("tcp", ":0")
 	if err != nil {
 		return utils.WriteMessage(info.Conn, commons.CantOpenDataConn)
 	}
+	port := listener.Addr().(*net.TCPAddr).Port
 	defer func() { _ = listener.Close() }()
 
 	localAddr := info.Conn.LocalAddr().String()

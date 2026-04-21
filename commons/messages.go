@@ -25,7 +25,7 @@ const (
 	CurrentDirectory     = "257 \"%s\" is the current directory\r\n"
 	DirectoryCreated     = "257 Directory created.\r\n"
 	// (h1,h2,h3,h4,p1,p2 address); use fmt.Sprintf.
-	EnteringPassiveMode  = "227 Entering Passive Mode (%s)\r\n"
+	EnteringPassiveMode = "227 Entering Passive Mode (%s)\r\n" // #nosec G101 -- not a credential
 
 	// 3xx — Positive Intermediate
 	UsernameOK = "331 User name okay, password needed.\r\n"
